@@ -1,5 +1,4 @@
 "use strict";
-
 /*
 * Credits:
 * https://gist.github.com/eslachance/3349734a98d30011bb202f47342601d3#file-index-js-L56
@@ -51,43 +50,31 @@ client.on('message', async message => {
     if( command === 'stats' ) {
         const docRef = db.collection('users').doc(message.author.id);
         let data;
-        
-        await docRef.get().then(function(doc) {
-            if (doc.exists) { // if document exists, then assign the doc data to data
+        docRef.get().then(function(doc) {
+            // check if user ID is in DB
+            if (doc.exists) { // if so, return the stats of the player
                 data = doc.data();
-                message.channel.send(''); // Send stats
-            } else { // if it doesn't create a new one
-                let player = {
-                    name: 'Lo',
-                    age: 20,
-                    hp: 100,
-                    immune: 'Strong',
-                    problems: '',
-                }
-                data = docRef.set(player);
+                if( verbose ) { console.log(data); }
+                /* Stats Format:
+                * Name
+                * Age
+                * HP 
+                * Immune Strength (chance of getting virus)
+                * Current heath issues
+                */
+                message.channel.send(`Name: ${data.name}\nAge: ${data.age}\nHealth: ${data.hp}\nImmune System Strength: ${data.immune}\nCurrent Health Problems: ${data.problems}\n`); // Send stats
+            } else { // if it doesn't reply with there is no account
+                message.channel.send('You don\'t have a human. Use the command `create` to make a human.');
             }
         }).catch(function(error) {
             console.log("Error getting document:", error);
+            message.channel.send('error');
         });
-
-        console.log(data);
-
-        // Name
-        // Age
-        // HP 
-        // Immune Strength (chance of getting virus)
-        // Current heath issues
-        
-        // check if user ID is in DB
-
-        // if so, return the stats of the player
-
-        // else reply you don't have a player
-
     }
 
     // Create a player CMD
-    if ( command === 'create' ) {
+    if ( command === 'create' ) { // need argument of a name
+        // Default stats is 100 & age is 20
         // check user ID if there is an player already
 
         // if the
