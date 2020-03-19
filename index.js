@@ -24,7 +24,7 @@ client.once('ready', () => {
 client.on('message', async message => {
     if( message.author.bot ) { return; } // Ignore bot's own messages
     if( message.content.indexOf(prefix) !== 0 ) { return; } // Ignore non-prefix messages
-    if(message.channel.type === "dm") { return }; // Ignore dm messages
+    if( message.channel.type === "dm" ) { return }; // Ignore dm messages
     
     // Split up message in command & args
     const args = message.content.slice(prefix.length).trim().split(/ +/g);
@@ -62,22 +62,42 @@ client.on('message', async message => {
                 * Immune Strength (chance of getting virus)
                 * Current heath issues
                 */
-                message.channel.send(`Name: ${data.name}\nAge: ${data.age}\nHealth: ${data.hp}\nImmune System Strength: ${data.immune}\nCurrent Health Problems: ${data.problems}\n`); // Send stats
+                return message.channel.send(`Name: ${data.name}\nAge: ${data.age}\nHealth: ${data.hp}\nImmune System Strength: ${data.immune}\nCurrent Health Problems: ${data.problems}\n`); // Send stats
             } else { // if it doesn't reply with there is no account
-                message.channel.send('You don\'t have a human. Use the command `create` to make a human.');
+                return message.channel.send('You don\'t have a human. Use the command `create` to make a human.');
             }
         }).catch(function(error) {
-            console.log("Error getting document:", error);
-            message.channel.send('error');
+            if( verbose ) { console.log("Error getting document:", error); }
+            return message.channel.send('error');
         });
     }
 
     // Create a player CMD
     if ( command === 'create' ) { // need argument of a name
-        // Default stats is 100 & age is 20
-        // check user ID if there is an player already
+        const docRef = db.collection('users').doc(message.author.id);
 
-        // if the
+        docRef.get().then(function(doc) {
+            if(!doc.exists) {
+                if( !args[0] ) { // if there isn't an argument then
+                    return message.channel.send('Make sure to enter the name of your human! The command is `create <name>`.');
+                } else {
+                    let player = {
+                        name: args[0],
+                        age: 20,
+                        hp: 100,
+                        immune: 'Normal',
+                        problems: '',
+                    }
+                    docRef.set(player);
+                    return message.channel.send(`${args[0]} successfully created! Use \`stats\` to check your stats!`)
+                }
+            } else {
+                return message.channel.send('You already have a human! Use `stats` to see your current human stats');
+            }
+        }).catch(function(error) {
+            console.log("Error getting document:", error);
+            return message.channel.send('error');
+        });
     }
 
     // Store CMD to purchase items
