@@ -13,7 +13,7 @@ const db = require('./database/db.js');
 
 // Declare Variables
 const prefix = '==';
-const verbose = true;
+const verbose = true; // debug variable
 
 client.once('ready', () => {
 	console.log('Ready!');
@@ -23,9 +23,67 @@ client.once('ready', () => {
 // ALL COMMANDS
 client.on('message', async message => {
     if( message.author.bot ) { return; } // Ignore bot's own messages
-    if( message.content.indexOf(prefix) !== 0 ) { return; } // Ignore non-prefix messages
     if( message.channel.type === "dm" ) { return }; // Ignore dm messages
     
+    /* 
+    * Economy & Virus
+    */
+    if( message.guild ) {
+        const docRef = db.collection('users').doc(message.author.id);
+        docRef.get().then(async function(doc) {
+            // check if user ID is in DB
+            if ( doc.exists ) { // If so add money
+                const data = await doc.data()
+                const temp = data.money+Math.round(Math.random()*2); // chance to get 0 to 2 dollars.
+                docRef.update({
+                    money: temp,
+                });
+            }
+        }).catch(function(error) {
+            if( verbose ) { console.log(error); } // this will always error if person doesn't have a human.
+        });
+
+        docRef.get().then(async function(doc) { // VIRUS DEMO
+            const virus = (Math.random()); // Since I don't want everyone to constanly be at risk...
+            if(virus <= 0.25) { // curently 1/4 chance of getting virus
+                // check if user ID is in DB
+                if ( doc.exists ) { // if player is playing then see how their immune sys
+                    const chance = Math.random()*11; // will get a value between 0 & 10.99
+                    const data = await doc.data(); // get data
+                    const life = data.immune - chance;
+                    if( life < 0 ) {
+                        const random = Math.random();
+                        let conditions;
+                        if(random <= 0.25) { conditions = 'COVID-19'; }
+                        else if(random >= 0.25 && random <= 0.50) { conditions = 'Bubonic plague'; }
+                        else if(random >= 0.50 && random <= 0.75) { conditions = 'Ebola'; }
+                        else if(random >= 0.75) { conditions = 'Cholera'; }
+                        
+                        const checker = data.problems.indexOf(conditions);
+                        if(checker != -1) {
+                            conditions = undefined;
+                        }
+
+                        if( conditions ) { // As long as there is condition
+                            const temp = data.problems+' '+conditions+',';
+                            console.log(temp);
+                            docRef.update({
+                                problems: temp,
+                            });
+                        }
+                    }
+                }
+            }
+        }).catch(function(error) {
+            if( verbose ) { console.log(error); } // this will always error if person doesn't have a human.
+        });
+    }
+
+    if( message.content.indexOf(prefix) !== 0 ) { return; } // Ignore non-prefix messages
+
+    /*
+    * Commands
+    */
     // Split up message in command & args
     const args = message.content.slice(prefix.length).trim().split(/ +/g);
     const command = args.shift().toLowerCase();
@@ -62,7 +120,11 @@ client.on('message', async message => {
                 * Immune Strength (chance of getting virus)
                 * Current heath issues
                 */
-                return message.channel.send(`Name: ${data.name}\nAge: ${data.age}\nMoney: \$${data.money}\nHealth: ${data.hp}\nImmune System Strength: ${data.immune}\nCurrent Health Problems: ${data.problems}\n`); // Send stats
+                let immune;
+                if(data.immune < 3) { immune = 'Weak'; }
+                else if(data.immune > 3 && data.immune < 7) { immune = 'Normal'; }
+                else if(data.immune > 7) { immune = 'Strong'; }
+                return message.channel.send(`Name: ${data.name}\nAge: ${data.age}\nMoney: \$${data.money}\nHealth: ${data.hp}\nImmune Strength: ${immune}\nStatus: ${data.problems}\n`); // Send stats
             } else { // if it doesn't reply with there is no account
                 return message.channel.send('You don\'t have a human. Use the command `create` to make a human.');
             }
@@ -123,11 +185,11 @@ client.on('message', async message => {
 **Notice** 
 > When you buy something it automatically gets used.
 > Also to purchase do \`buy <number>\`
-\`1\`Cold & Flu Medicine - $10
-\`2\`Workout - \$10
-\`3\`Vaccine - \$10
-\`4\`Vitamins - \$10
-\`5\`Essential Oils -\$10
+\`1\`Medicine - $10 (Helps ease the effects of diseases; Lowers health loss due to diseases)
+\`2\`Exercise - \$10 (Boosts your immune system; Increases immune strength)
+\`3\`Vaccine - \$10 (Prevents you from getting some diseases;)
+\`4\`Vitamins - \$10 (Does nothing... However uses the placebo effect to boost your immune; Increases immune strength)
+\`5\`Essential Oils -\$10 (Does nothing... Uses the placebo effect to cure you; Has a chance of getting rid of a disease)
         `);
     }
 
@@ -206,9 +268,6 @@ client.on('message', async message => {
     }
 
     // Future Plan for leaderboard?
-
-
-
     return;
 });
 
