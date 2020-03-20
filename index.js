@@ -62,7 +62,7 @@ client.on('message', async message => {
                 * Immune Strength (chance of getting virus)
                 * Current heath issues
                 */
-                return message.channel.send(`Name: ${data.name}\nAge: ${data.age}\nHealth: ${data.hp}\nImmune System Strength: ${data.immune}\nCurrent Health Problems: ${data.problems}\n`); // Send stats
+                return message.channel.send(`Name: ${data.name}\nAge: ${data.age}\nMoney: \$${data.money}\nHealth: ${data.hp}\nImmune System Strength: ${data.immune}\nCurrent Health Problems: ${data.problems}\n`); // Send stats
             } else { // if it doesn't reply with there is no account
                 return message.channel.send('You don\'t have a human. Use the command `create` to make a human.');
             }
@@ -86,6 +86,7 @@ client.on('message', async message => {
                         age: 20,
                         hp: 100,
                         immune: 5, // 1-10 for immune strength 1 being weakest 10 being strongest
+                        money: 100,
                         problems: '',
                     }
                     docRef.set(player);
@@ -117,6 +118,92 @@ client.on('message', async message => {
     }
 
     // Store CMD to purchase items
+    if( command === 'store' || command === 'shop' ) {
+        return message.channel.send(`
+**Notice** 
+> When you buy something it automatically gets used.
+> Also to purchase do \`buy <number>\`
+\`1\`Cold & Flu Medicine - $10
+\`2\`Workout - \$10
+\`3\`Vaccine - \$10
+\`4\`Vitamins - \$10
+\`5\`Essential Oils -\$10
+        `);
+    }
+
+    if( command === 'buy' || command === 'purchase' ) {
+        if( !args[0] ) { // if there isn't an argument then
+            return message.channel.send('Make sure to enter a number to purchase.');
+        } else {
+            const docRef = db.collection('users').doc(message.author.id);
+            docRef.get().then(function(doc) {
+                if (doc.exists) { // if it does then update the player
+                const data = doc.data();
+                // TODO: too many ifs omg. replace with switch later. Also just replace with for loop & a list with the prices...
+                    if( args[0] === '1' ) {
+                        if( data.money < 10 ) {
+                            return message.channel.send('You don\'t have enough money! Talk in chat to earn more!')
+                        } else {
+                            const temp = {
+                                money: data.money-10
+                            }
+                            docRef.update(temp);
+                            return message.channel.send('Purchased and applied! Use `stats` to check your updated stats.');
+                        }
+                    }
+                    else if( args[0] === '2' ) {
+                        if( data.money < 10 ) {
+                            return message.channel.send('You don\'t have enough money! Talk in chat to earn more!')
+                        } else {
+                            const temp = {
+                                money: data.money-10
+                            }
+                            docRef.update(temp);
+                            return message.channel.send('Purchased and applied! Use `stats` to check your updated stats.');
+                        }
+                    }
+                    else if( args[0] === '3' ) {
+                        if( data.money < 10 ) {
+                            return message.channel.send('You don\'t have enough money! Talk in chat to earn more!')
+                        } else {
+                            const temp = {
+                                money: data.money-10
+                            }
+                            docRef.update(temp);
+                            return message.channel.send('Purchased and applied! Use `stats` to check your updated stats.');
+                        }
+                    }
+                    else if( args[0] === '4' ) {
+                        if( data.money < 10 ) {
+                            return message.channel.send('You don\'t have enough money! Talk in chat to earn more!')
+                        } else {
+                            const temp = {
+                                money: data.money-10
+                            }
+                            docRef.update(temp);
+                            return message.channel.send('Purchased and applied! Use `stats` to check your updated stats.');
+                        }
+                    }
+                    else if( args[0] === '5' ) {
+                        if( data.money < 10 ) {
+                            return message.channel.send('You don\'t have enough money! Talk in chat to earn more!')
+                        } else {
+                            const temp = {
+                                money: data.money-10
+                            }
+                            docRef.update(temp);
+                            return message.channel.send('Purchased and applied! Use `stats` to check your updated stats.');
+                        }
+                    }
+                } else {
+                    return message.channel.send('You don\' have a human to purcahse items! Use `create <name>` to make one!')
+                }
+            }).catch(function(error) {
+                console.log("Error getting document:", error);
+                return message.channel.send('error');
+            });
+        }
+    }
 
     // Future Plan for leaderboard?
 
