@@ -85,7 +85,7 @@ client.on('message', async message => {
                         name: args[0],
                         age: 20,
                         hp: 100,
-                        immune: 'Normal',
+                        immune: 5, // 1-10 for immune strength 1 being weakest 10 being strongest
                         problems: '',
                     }
                     docRef.set(player);
@@ -100,7 +100,25 @@ client.on('message', async message => {
         });
     }
 
+    // Delete player command
+    if( command === 'delete' ) {
+        const docRef = db.collection('users').doc(message.author.id);
+        docRef.get().then(function(doc) {
+            if (doc.exists) { // if it does then delete player
+                docRef.delete();
+                return message.channel.send('Human successfully deleted.');
+            } else {
+                return message.channel.send('You don\' have a human to delete')
+            }
+        }).catch(function(error) {
+            console.log("Error getting document:", error);
+            return message.channel.send('error');
+        });
+    }
+
     // Store CMD to purchase items
+
+    // Future Plan for leaderboard?
 
 
 
