@@ -18,6 +18,7 @@ const verbose = true; // debug variable
 client.once('ready', () => {
 	console.log('Ready!');
     console.log();
+    client.user.setActivity(`==help`);
 });
 
 // ALL COMMANDS
@@ -167,13 +168,6 @@ client.on('message', async message => {
         retMessage.edit(`Pong! Latency is ${retMessage.createdTimestamp - message.createdTimestamp}ms.`);
     }
 
-    if( command === 'help' ) {
-        // Wanna use EMBEDS but doesn't work bc Node not V12 & REPL still hasn't fixed it... also discord.js hasn't fixed it either so the patch method is to update to Node V12.
-        // https://github.com/discordjs/discord.js/issues/3910
-
-        const retMessage = message.channel.send(`Prefix: \`${prefix}\` \nCommands: \n  \`ping\``);
-    }
-
     // Bot Specific Commands
     if( command === 'stats' ) {
         const docRef = db.collection('users').doc(message.author.id);
@@ -194,7 +188,8 @@ client.on('message', async message => {
                 if(data.immune < 3) { immune = 'Weak'; }
                 else if(data.immune > 3 && data.immune < 7) { immune = 'Normal'; }
                 else if(data.immune > 7) { immune = 'Strong'; }
-                return message.channel.send(`Name: ${data.name}\nAge: ${data.age}\nMoney: \$${data.money}\nHealth: ${data.hp}\nImmune Strength: ${immune}\nStatus: ${data.problems}\n`); // Send stats
+                const tempo = data.problems.substring(0, data.problems.length - 2);
+                return message.channel.send(`Name: ${data.name}\nAge: ${data.age}\nMoney: \$${data.money}\nHealth: ${data.hp}\nImmune Strength: ${immune}\nStatus: ${tempo}\n`); // Send stats
             } else { // if it doesn't reply with there is no account
                 return message.channel.send('You don\'t have a human. Use the command `create` to make a human.');
             }
@@ -255,7 +250,7 @@ client.on('message', async message => {
 **Notice** 
 > When you buy something it automatically gets used.
 > Also to purchase do \`buy <number>\`
-\`1\`Medicine - $10 (Helps ease the effects of diseases; Increases heath)
+\`1\`Medicine - \$10 (Helps ease the effects of diseases; Increases heath)
 \`2\`Exercise - \$10 (Boosts your immune system; Increases immune strength)
 \`3\`Vaccine - \$10 (Prevents you from getting some diseases; CURRENTLY DOESN'T WORK)
 \`4\`Vitamins - \$10 (Does nothing... However uses the placebo effect to boost your immune; Increases immune strength)
@@ -330,8 +325,47 @@ client.on('message', async message => {
     }
 
     // Info command (information about stuff)
-
-    // Start command (how to play game)
+    if( command === 'info' || command === 'information' || command === 'help' ) {
+        if( !args[0] ) { // if there isn't an argument then
+            return message.channel.send(`
+Prefix: \`${prefix}\`
+> 
+> Commands:
+> 
+Note things in <> are mandatory & things in [] are optional.
+\`help [argument]\` -- Arguments specific to this command: \`about\`, \`start\`
+\`help about\` -- About the creator of the bot.
+\`help start\` -- Best method of using the bot.
+\`ping\` -- Ping the server.
+\`create <name>\` -- Create a new human.
+\`delete\` -- Delete your human.
+\`stats\` -- See the stats of your human.
+\`store\` -- See items for sale.
+\`buy <number>\` -- Purchase items in store.
+            `);
+        } else if( args[0] === 'about') {
+            return message.channel.send(`
+**Purpose:** To immitate real life.
+**Created By:** Lo#4761
+**Github:** https://github.com/randomlylelo/plague-Cord
+**Repl.it:** https://repl.it/@randomlylelo/plague-Cord
+            `);
+        } else if( args[0] === 'start' ) {
+            return message.channel.send(`
+You earn money by talking in discord. (You are working, you will earn \$0-\$2 per message)
+You spread and catch diseases by talking.
+You can recover from diseases.
+Your goal is to not die and earn \$200.
+Have fun :)
+> **Recommended method of playing:**
+Gather a group of friends.
+Delete any previous humans by using \`delete\`
+Then create a new human using \`create <name>\`
+After all friends created their human, then start chatting
+First to make it to \$200 wins
+            `);
+        }
+    }
 
     // Future Plan for leaderboard?
     return;
