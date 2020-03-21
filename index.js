@@ -51,7 +51,7 @@ client.on('message', async message => {
                 // check if user ID is in DBT
                 if ( doc.exists ) { // if player is playing then see how their immune sys
                     const chance = Math.random()*11; // will get a value between 0 & 10.99
-                    const data = await doc.data(); // get data
+                    let data = await doc.data(); // get data
                     const life = data.immune - chance;
                     if( life < 0 ) {
                         const random = Math.random();
@@ -61,6 +61,7 @@ client.on('message', async message => {
                         else if(random >= 0.50 && random <= 0.75) { conditions = 'Ebola'; }
                         else if(random >= 0.75) { conditions = 'Cholera'; }
                         
+                        data = await doc.data(); // update adata again.
                         const checker = data.problems.indexOf(conditions);
                         if(checker != -1) {
                             conditions = undefined;
@@ -97,7 +98,7 @@ client.on('message', async message => {
                         let shifted = split.shift(); // get rid of first element
                         let result = '';
                         for(let i = 0; i < split.length; i++) {
-                            result = result+split[0]+', '
+                            result = result+split[i]+', '
                         }
                         docRef.update({
                             problems: result,
