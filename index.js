@@ -29,6 +29,7 @@ client.on('message', async message => {
     * Economy & Virus
     */
     if( message.guild ) {
+        // ECONOMY
         const docRef = db.collection('users').doc(message.author.id);
         docRef.get().then(async function(doc) {
             // check if user ID is in DB
@@ -43,10 +44,11 @@ client.on('message', async message => {
             if( verbose ) { console.log(error); } // this will always error if person doesn't have a human.
         });
 
+        // VIRUS
         docRef.get().then(async function(doc) { // VIRUS DEMO
             const virus = (Math.random()); // Since I don't want everyone to constanly be at risk...
             if(virus <= 0.25) { // curently 1/4 chance of getting virus
-                // check if user ID is in DB
+                // check if user ID is in DBT
                 if ( doc.exists ) { // if player is playing then see how their immune sys
                     const chance = Math.random()*11; // will get a value between 0 & 10.99
                     const data = await doc.data(); // get data
@@ -65,13 +67,55 @@ client.on('message', async message => {
                         }
 
                         if( conditions ) { // As long as there is condition
-                            const temp = data.problems+' '+conditions+',';
+                            const temp = data.problems+conditions+', ';
                             console.log(temp);
                             docRef.update({
                                 problems: temp,
                             });
+                            message.channel.send(`You just caught ${conditions}!`);
                         }
                     }
+                }
+            }
+        }).catch(function(error) {
+            if( verbose ) { console.log(error); } // this will always error if person doesn't have a human.
+        });
+
+        // Killer
+        docRef.get().then(async function(doc) {
+            // check if user ID is in DB
+            if ( doc.exists ) {
+                const data = await doc.data();
+                // check if they have any conditions
+                if( data.problems.length != 0) {
+                    // Give chance of cure 
+                    const cure = Math.random();
+                    const split = data.problems.split(', ');
+                    split.pop(); // get rid of the space @ end
+                    const split2 = split;
+                    if( cure < 0.09 ) { // 10% chance of cure?
+                        let shifted = split.shift(); // get rid of first element
+                        let result = '';
+                        for(let i = 0; i < split.length; i++) {
+                            result = result+split[0]+', '
+                        }
+                        docRef.update({
+                            problems: result,
+                        });
+                        message.channel.send('Congratulations, you are cured of ' + shifted);
+                    }
+
+                    // Take damage
+                    let totalDMG = 0;
+                    for(let i = 0; i < split2.length; i++) {
+                        if(split2[i] === 'COVID-19') { totalDMG += 2; }
+                        else if(split2[i] === 'Bubonic plague') { totalDMG += 1; }
+                        else if(split2[i] === 'Ebola') { totalDMG += 4; }
+                        else if(split2[i] === 'Cholera') { totalDMG += 2; }
+                    }
+                    docRef.update({
+                        hp: data.hp-totalDMG,
+                    });
                 }
             }
         }).catch(function(error) {
@@ -185,9 +229,9 @@ client.on('message', async message => {
 **Notice** 
 > When you buy something it automatically gets used.
 > Also to purchase do \`buy <number>\`
-\`1\`Medicine - $10 (Helps ease the effects of diseases; Lowers health loss due to diseases)
+\`1\`Medicine - $10 (Helps ease the effects of diseases; Increases heath)
 \`2\`Exercise - \$10 (Boosts your immune system; Increases immune strength)
-\`3\`Vaccine - \$10 (Prevents you from getting some diseases;)
+\`3\`Vaccine - \$10 (Prevents you from getting some diseases; CURRENTLY DOESN'T WORK)
 \`4\`Vitamins - \$10 (Does nothing... However uses the placebo effect to boost your immune; Increases immune strength)
 \`5\`Essential Oils -\$10 (Does nothing... Uses the placebo effect to cure you; Has a chance of getting rid of a disease)
         `);
@@ -225,15 +269,7 @@ client.on('message', async message => {
                         }
                     }
                     else if( args[0] === '3' ) {
-                        if( data.money < 10 ) {
-                            return message.channel.send('You don\'t have enough money! Talk in chat to earn more!')
-                        } else {
-                            const temp = {
-                                money: data.money-10
-                            }
-                            docRef.update(temp);
-                            return message.channel.send('Purchased and applied! Use `stats` to check your updated stats.');
-                        }
+                        return message.channel.send('You cannot buy this item because it doesn\'t work.');
                     }
                     else if( args[0] === '4' ) {
                         if( data.money < 10 ) {
