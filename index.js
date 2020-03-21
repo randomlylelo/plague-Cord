@@ -122,6 +122,31 @@ client.on('message', async message => {
         }).catch(function(error) {
             if( verbose ) { console.log(error); } // this will always error if person doesn't have a human.
         });
+
+        // GAME ENDER
+        // EITHER HP GOES NEGATIVE OR MONEY GOES TO $200
+        docRef.get().then(function(doc) {
+            if (doc.exists) { // if it does then delete player
+                const data = doc.data();
+                if( data.hp <= 0 ) {
+                    const tempo = data.problems.substring(0, data.problems.length - 2);
+                    message.channel.send('R.I.P your human, he died from ' + tempo + '. Use `create <name>` to make a new human!');
+                    docRef.delete();
+                    return;
+                }
+                if( data.money > 200 ) {
+                    message.channel.send('CONGRATS! You just completed the game, your winning stats:');
+                    message.channel.send(`Name: ${data.name}\nAge: ${data.age}\nMoney: \$${data.money}\nHealth: ${data.hp}\nImmune Strength: ${immune}\nStatus: ${data.problems}\n`);
+                    message.channel.send('Deleting your human...');
+                    docRef.delete();
+                    message.channel.send('Use `create <name>` to make a new human.')
+                    return;
+                }
+            }
+        }).catch(function(error) {
+            console.log("Error getting document:", error);
+            return message.channel.send('error');
+        });
     }
 
     if( message.content.indexOf(prefix) !== 0 ) { return; } // Ignore non-prefix messages
@@ -303,6 +328,10 @@ client.on('message', async message => {
             });
         }
     }
+
+    // Info command (information about stuff)
+
+    // Start command (how to play game)
 
     // Future Plan for leaderboard?
     return;
