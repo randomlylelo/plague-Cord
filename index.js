@@ -47,8 +47,9 @@ client.on('message', async message => {
 
         // VIRUS
         docRef.get().then(async function(doc) { // VIRUS DEMO
-            const virus = (Math.random()); // Since I don't want everyone to constanly be at risk...
-            if(virus <= 0.25) { // curently 1/4 chance of getting virus
+            const virus = Math.floor(Math.random()*50)+1;
+            console.log(virus);
+            if(virus == 1 ) { // 1 in 50 chance
                 // check if user ID is in DBT
                 if ( doc.exists ) { // if player is playing then see how their immune sys
                     const chance = Math.random()*11; // will get a value between 0 & 10.99
@@ -91,11 +92,11 @@ client.on('message', async message => {
                 // check if they have any conditions
                 if( data.problems.length != 0) {
                     // Give chance of cure 
-                    const cure = Math.random();
+                    const cure = Math.floor(Math.random()*100)+1;
                     const split = data.problems.split(', ');
                     split.pop(); // get rid of the space @ end
                     const split2 = split;
-                    if( cure < 0.09 ) { // 10% chance of cure?
+                    if( cure == 1 ) { // 1/100 chance of cure
                         let shifted = split.shift(); // get rid of first element
                         let result = '';
                         for(let i = 0; i < split.length; i++) {
@@ -136,9 +137,12 @@ client.on('message', async message => {
                     return;
                 }
                 if( data.money > 200 ) {
-                    message.channel.send('CONGRATS! You just completed the game, your winning stats:');
-                    message.channel.send(`Name: ${data.name}\nAge: ${data.age}\nMoney: \$${data.money}\nHealth: ${data.hp}\nImmune Strength: ${immune}\nStatus: ${data.problems}\n`);
-                    message.channel.send('Deleting your human...');
+                    let immune;
+                    if(data.immune < 3) { immune = 'Weak'; }
+                    else if(data.immune > 3 && data.immune < 7) { immune = 'Normal'; }
+                    else if(data.immune > 7) { immune = 'Strong'; }
+                    const tempo = data.problems.substring(0, data.problems.length - 2);
+                    message.channel.send(`CONGRATS! You just completed the game, your winning stats:\nName: ${data.name}\nAge: ${data.age}\nMoney: \$${data.money}\nHealth: ${data.hp}\nImmune Strength: ${immune}\nStatus: ${data.problems}\nDeleting your human...`);
                     docRef.delete();
                     message.channel.send('Use `create <name>` to make a new human.')
                     return;
@@ -250,11 +254,11 @@ client.on('message', async message => {
 **Notice** 
 > When you buy something it automatically gets used.
 > Also to purchase do \`buy <number>\`
-\`1\`Medicine - \$10 (Helps ease the effects of diseases; Increases heath)
-\`2\`Exercise - \$10 (Boosts your immune system; Increases immune strength)
-\`3\`Vaccine - \$10 (Prevents you from getting some diseases; CURRENTLY DOESN'T WORK)
-\`4\`Vitamins - \$10 (Does nothing... However uses the placebo effect to boost your immune; Increases immune strength)
-\`5\`Essential Oils -\$10 (Does nothing... Uses the placebo effect to cure you; Has a chance of getting rid of a disease)
+\`1\`Medicine - \$10 (Helps ease the effects of diseases; Increases health)
+\`2\`Exercise - \$25 (Boosts your immune system; Increases immune strength)
+\`3\`Vaccine - \$NaN (Prevents you from getting some diseases; CURRENTLY DOESN'T WORK)
+\`4\`Vitamins - \$25 (Does nothing... However uses the placebo effect to boost your immune; Increases immune strength)
+\`5\`Essential Oils -\$50 (Does nothing... Uses the placebo effect to cure you; Has a chance of getting rid of a disease)
         `);
     }
 
@@ -263,7 +267,7 @@ client.on('message', async message => {
             return message.channel.send('Make sure to enter a number to purchase.');
         } else {
             const docRef = db.collection('users').doc(message.author.id);
-            docRef.get().then(function(doc) {
+            docRef.get().then(async function(doc) {
                 if (doc.exists) { // if it does then update the player
                 const data = doc.data();
                 // TODO: too many ifs omg. replace with switch later. Also just replace with for loop & a list with the prices...
@@ -272,20 +276,22 @@ client.on('message', async message => {
                             return message.channel.send('You don\'t have enough money! Talk in chat to earn more!')
                         } else {
                             const temp = {
+                                hp: data.hp+10,
                                 money: data.money-10
                             }
-                            docRef.update(temp);
+                            await docRef.update(temp);
                             return message.channel.send('Purchased and applied! Use `stats` to check your updated stats.');
                         }
                     }
                     else if( args[0] === '2' ) {
-                        if( data.money < 10 ) {
+                        if( data.money < 25 ) {
                             return message.channel.send('You don\'t have enough money! Talk in chat to earn more!')
                         } else {
                             const temp = {
-                                money: data.money-10
+                                money: data.money-25,
+                                immune: data.immune+1
                             }
-                            docRef.update(temp);
+                            await docRef.update(temp);
                             return message.channel.send('Purchased and applied! Use `stats` to check your updated stats.');
                         }
                     }
@@ -293,24 +299,39 @@ client.on('message', async message => {
                         return message.channel.send('You cannot buy this item because it doesn\'t work.');
                     }
                     else if( args[0] === '4' ) {
-                        if( data.money < 10 ) {
+                        if( data.money < 25 ) {
                             return message.channel.send('You don\'t have enough money! Talk in chat to earn more!')
                         } else {
                             const temp = {
-                                money: data.money-10
+                                money: data.money-25,
+                                immune: data.immune+1
                             }
-                            docRef.update(temp);
+                            await docRef.update(temp);
                             return message.channel.send('Purchased and applied! Use `stats` to check your updated stats.');
                         }
                     }
                     else if( args[0] === '5' ) {
-                        if( data.money < 10 ) {
+                        if( data.money < 50 ) {
                             return message.channel.send('You don\'t have enough money! Talk in chat to earn more!')
                         } else {
-                            const temp = {
-                                money: data.money-10
+                            const cure = Math.floor(Math.random()*50)+1;
+                            const split = data.problems.split(', ');
+                            split.pop(); // get rid of the space @ end
+                            const split2 = split;
+                            if( cure == 1 ) { // 1/50 chance of cure
+                                let shifted = split.shift(); // get rid of first element
+                                let result = '';
+                                for(let i = 0; i < split.length; i++) {
+                                    result = result+split[i]+', '
+                                }
+                                await docRef.update({
+                                    problems: result,
+                                });
                             }
-                            docRef.update(temp);
+                            const temp = {
+                                money: data.money-50
+                            }
+                            await docRef.update(temp);
                             return message.channel.send('Purchased and applied! Use `stats` to check your updated stats.');
                         }
                     }
