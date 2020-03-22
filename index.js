@@ -48,7 +48,6 @@ client.on('message', async message => {
         // VIRUS
         docRef.get().then(async function(doc) { // VIRUS DEMO
             const virus = Math.floor(Math.random()*50)+1;
-            console.log(virus);
             if(virus == 1 ) { // 1 in 50 chance
                 // check if user ID is in DBT
                 if ( doc.exists ) { // if player is playing then see how their immune sys
@@ -71,7 +70,6 @@ client.on('message', async message => {
 
                         if( conditions ) { // As long as there is condition
                             const temp = data.problems+conditions+', ';
-                            console.log(temp);
                             docRef.update({
                                 problems: temp,
                             });
@@ -221,7 +219,7 @@ client.on('message', async message => {
                         problems: '',
                     }
                     docRef.set(player);
-                    return message.channel.send(`${args[0]} successfully created! Use \`stats\` to check your stats!`)
+                    return message.channel.send(`${args[0]} successfully created! Use \`stats\` to check your stats! Do \`help start\` to see ways of playing. Also if bot errors, pm Lo#4761`)
                 }
             } else {
                 return message.channel.send('You already have a human! Use `stats` to see your current human stats');
