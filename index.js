@@ -10,6 +10,7 @@
 const Discord = require('discord.js');
 const client = new Discord.Client();
 const db = require('./database/db.js');
+const keepAlive = require('./server');
 
 // Declare Variables
 const prefix = '==';
@@ -260,6 +261,7 @@ client.on('message', async message => {
         `);
     }
 
+    // Buy something command
     if( command === 'buy' || command === 'purchase' ) {
         if( !args[0] ) { // if there isn't an argument then
             return message.channel.send('Make sure to enter a number to purchase.');
@@ -368,6 +370,7 @@ Note things in <> are mandatory & things in [] are optional.
 **Created By:** Lo#4761
 **Github:** https://github.com/randomlylelo/plague-Cord
 **Repl.it:** https://repl.it/@randomlylelo/plague-Cord
+**Support Discord:** https://discord.gg/udvKHwb
             `);
         } else if( args[0] === 'start' ) {
             return message.channel.send(`
@@ -393,4 +396,5 @@ First to make it to \$200 wins
 // When err, console log it
 client.on('error', console.error);
 
+keepAlive();
 client.login(process.env.TOKEN);
